@@ -96,11 +96,10 @@ class HAThermometerGraphPlugin(
         }
 
     def ha_temperature_hook(self, comm_instance, parsed_temps, *args, **kwargs):
-        # Inject HA temperature as a virtual tool using the configured label
+        # Inject HA temperature as the chamber ("C")
         if self._temperature is not None:
-            sensor_label = self._settings.get(["sensor_label"]) or "HA_Sensor"
-            parsed_temps[sensor_label] = (self._temperature, None)
-            self._logger.info(f"HA temperature {self._temperature} injected as {sensor_label}")
+            parsed_temps["C"] = (self._temperature, None)
+            self._logger.info(f"HA temperature {self._temperature} injected as chamber (C)")
         else:
             self._logger.warning("Temp is None")
         return parsed_temps
