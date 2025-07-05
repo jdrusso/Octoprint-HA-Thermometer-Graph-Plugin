@@ -6,11 +6,14 @@ import requests
 import threading
 import time
 
-class HAThermometerGraphPlugin(octoprint.plugin.StartupPlugin,
-                               octoprint.plugin.TemplatePlugin,
-                               octoprint.plugin.SettingsPlugin,
-                               octoprint.plugin.AssetPlugin,
-                               octoprint.plugin.SimpleApiPlugin):
+class HAThermometerGraphPlugin(
+    octoprint.plugin.StartupPlugin,
+    octoprint.plugin.TemplatePlugin,
+    octoprint.plugin.SettingsPlugin,
+    octoprint.plugin.AssetPlugin,
+    octoprint.plugin.SimpleApiPlugin,
+    octoprint.plugin.HookPlugin
+):
 
     def __init__(self):
         self._temperature = None
@@ -70,6 +73,21 @@ class HAThermometerGraphPlugin(octoprint.plugin.StartupPlugin,
             css=[],
             less=[]
         )
+
+    ##~~ HookPlugin mixin
+
+    def get_hooks(self):
+        return {
+            "octoprint.comm.protocol.temperatures.received": self.ha_temperature_hook
+        }
+
+    def ha_temperature_hook(self, comm_instance, parsed_temps, *args, **kwargs):
+        # Inject HA temperature as a virtual tool (e.g., "HA_Sensor")
+        if self._temperature is not None:
+            # parsed_temps is a dict like {'B': (actual, target), 'T0': (actual, target), ...}
+            # We'll add our own
+            parsed_temps["HA_Sensor"] = (self._temperature, None)
+        return parsed_temps
 
 __plugin_name__ = "HA Thermometer Graph"
 __plugin_pythoncompat__ = ">=3.7,<4"
