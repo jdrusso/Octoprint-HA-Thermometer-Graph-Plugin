@@ -1,4 +1,8 @@
 <form class="form-horizontal">
+    <!-- Note about heated chamber requirement -->
+    <div class="alert alert-warning">
+        {{ _('Note: Your printer profile must have a heated chamber enabled for the Home Assistant temperature to appear on the temperature graph. Please ensure this is set in your printer profile.') }}
+    </div>
     <div class="control-group">
         <label class="control-label" for="settings-enabled">{{ _('Enable Plugin') }}</label>
         <div class="controls">
