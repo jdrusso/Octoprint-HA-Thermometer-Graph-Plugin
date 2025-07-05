@@ -15,6 +15,11 @@ class HAThermometerGraphPlugin(
     octoprint.plugin.HookPlugin
 ):
 
+    def get_template_configs(self):
+        return [
+            dict(type="settings", custom_bindings=False)
+        ]
+
     def __init__(self):
         self._temperature = None
         self._stop_event = threading.Event()
