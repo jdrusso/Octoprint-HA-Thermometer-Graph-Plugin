@@ -11,8 +11,7 @@ class HAThermometerGraphPlugin(
     octoprint.plugin.TemplatePlugin,
     octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
-    octoprint.plugin.SimpleApiPlugin,
-    octoprint.plugin.HookPlugin
+    octoprint.plugin.SimpleApiPlugin
 ):
 
     def get_template_configs(self):
