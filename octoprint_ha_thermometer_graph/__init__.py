@@ -28,6 +28,7 @@ class HAThermometerGraphPlugin(
 
     def get_settings_defaults(self):
         return dict(
+            enabled=False,
             ha_url="http://homeassistant.local:8123",
             ha_token="",
             sensor_entity_id="sensor.your_thermometer",
@@ -45,6 +46,10 @@ class HAThermometerGraphPlugin(
 
     def _background_worker(self):
         while not self._stop_event.is_set():
+            if not self._settings.get_boolean(["enabled"]):
+                self._logger.debug("Plugin not enabled, skipping poll")
+                time.sleep(5)
+                continue
             try:
                 url = "{}/api/states/{}".format(
                     self._settings.get(["ha_url"]).rstrip("/"),
@@ -59,6 +64,7 @@ class HAThermometerGraphPlugin(
                 if response.ok:
                     data = response.json()
                     self._temperature = float(data["state"])
+                    self._logger.info(f"Got temperature {self._temperature}")
             except Exception as e:
                 self._logger.error("Failed to fetch temperature: {}".format(e))
             time.sleep(30)  # Fetch every 30 seconds
@@ -93,6 +99,9 @@ class HAThermometerGraphPlugin(
         if self._temperature is not None:
             sensor_label = self._settings.get(["sensor_label"]) or "HA_Sensor"
             parsed_temps[sensor_label] = (self._temperature, None)
+            self._logger.info(f"HA temperature {self._temperature} injected as {sensor_label}")
+        else:
+            self._logger.warning("Temp is None")
         return parsed_temps
 
 __plugin_name__ = "HA Thermometer Graph"
