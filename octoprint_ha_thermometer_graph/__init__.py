@@ -32,9 +32,8 @@ class HAThermometerGraphPlugin(
             ha_url="http://homeassistant.local:8123",
             ha_token="",
             sensor_entity_id="sensor.your_thermometer",
-            sensor_label="HA_Sensor",
             ignore_ssl_verify=False,
-            poll_interval=30
+            poll_interval=5
         )
 
     ##~~ StartupPlugin mixin
@@ -47,11 +46,13 @@ class HAThermometerGraphPlugin(
 
     def _background_worker(self):
         while not self._stop_event.is_set():
+            interval = max(5, self._settings.get_int(["poll_interval"]))
             if not self._settings.get_boolean(["enabled"]):
                 self._logger.debug("Plugin not enabled, skipping poll")
-                time.sleep(5)
+                time.sleep(interval)
                 continue
             try:
+                self._logger.info("Making request")
                 url = "{}/api/states/{}".format(
                     self._settings.get(["ha_url"]).rstrip("/"),
                     self._settings.get(["sensor_entity_id"])
@@ -65,10 +66,15 @@ class HAThermometerGraphPlugin(
                 if response.ok:
                     data = response.json()
                     self._temperature = float(data["state"])
-                    self._logger.info(f"Got temperature {self._temperature}")
+                    self._logger.debug(f"Got temperature {self._temperature}")
+                else:
+                    self._temperature = None
+                    self._logger.error(f"Failed to fetch temperature: {response.text}, {response.status_code}")
             except Exception as e:
+                self._temperature = None
                 self._logger.error("Failed to fetch temperature: {}".format(e))
-            time.sleep(30)  # Fetch every 30 seconds
+            self._logger.debug(f"After making request, {self._temperature=}")
+            time.sleep(interval)
 
     ##~~ SimpleApiPlugin mixin
 
@@ -88,7 +94,7 @@ class HAThermometerGraphPlugin(
             less=[]
         )
 
-    ##~~ HookPlugin mixin
+    ##~~ Hook
 
     def get_hooks(self):
         return {
@@ -99,13 +105,14 @@ class HAThermometerGraphPlugin(
         # Inject HA temperature as the chamber ("C")
         if self._temperature is not None:
             parsed_temps["C"] = (self._temperature, None)
-            self._logger.info(f"HA temperature {self._temperature} injected as chamber (C)")
-        else:
-            self._logger.warning("Temp is None")
+            self._logger.debug(f"HA temperature {self._temperature} injected as chamber (C)")
         return parsed_temps
 
 __plugin_name__ = "HA Thermometer Graph"
 __plugin_pythoncompat__ = ">=3.7,<4"
+
 def __plugin_load__():
     global __plugin_implementation__
+    global __plugin_hooks__
     __plugin_implementation__ = HAThermometerGraphPlugin()
+    __plugin_hooks__ = __plugin_implementation__.get_hooks()
