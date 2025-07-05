@@ -1,78 +1,78 @@
 # coding=utf-8
 from __future__ import absolute_import
 
-### (Don't forget to remove me)
-# This is a basic skeleton for your plugin's __init__.py. You probably want to adjust the class name of your plugin
-# as well as the plugin mixins it's subclassing from. This is really just a basic skeleton to get you started,
-# defining your plugin as a template plugin, settings and asset plugin. Feel free to add or remove mixins
-# as necessary.
-#
-# Take a look at the documentation on what other plugin mixins are available.
-
 import octoprint.plugin
+import requests
+import threading
+import time
 
-class Ha_thermometer_graphPlugin(octoprint.plugin.SettingsPlugin,
-    octoprint.plugin.AssetPlugin,
-    octoprint.plugin.TemplatePlugin
-):
+class HAThermometerGraphPlugin(octoprint.plugin.StartupPlugin,
+                               octoprint.plugin.TemplatePlugin,
+                               octoprint.plugin.SettingsPlugin,
+                               octoprint.plugin.AssetPlugin,
+                               octoprint.plugin.SimpleApiPlugin):
+
+    def __init__(self):
+        self._temperature = None
+        self._stop_event = threading.Event()
+        self._thread = None
 
     ##~~ SettingsPlugin mixin
 
     def get_settings_defaults(self):
-        return {
-            # put your plugin's default settings here
-        }
+        return dict(
+            ha_url="http://homeassistant.local:8123",
+            ha_token="",
+            sensor_entity_id="sensor.your_thermometer"
+        )
+
+    ##~~ StartupPlugin mixin
+
+    def on_after_startup(self):
+        self._logger.info("Starting HA Thermometer Graph background thread")
+        self._thread = threading.Thread(target=self._background_worker)
+        self._thread.daemon = True
+        self._thread.start()
+
+    def _background_worker(self):
+        while not self._stop_event.is_set():
+            try:
+                url = "{}/api/states/{}".format(
+                    self._settings.get(["ha_url"]).rstrip("/"),
+                    self._settings.get(["sensor_entity_id"])
+                )
+                headers = {
+                    "Authorization": "Bearer {}".format(self._settings.get(["ha_token"])),
+                    "Content-Type": "application/json",
+                }
+                response = requests.get(url, headers=headers, timeout=5)
+                if response.ok:
+                    data = response.json()
+                    self._temperature = float(data["state"])
+            except Exception as e:
+                self._logger.error("Failed to fetch temperature: {}".format(e))
+            time.sleep(30)  # Fetch every 30 seconds
+
+    ##~~ SimpleApiPlugin mixin
+
+    def get_api_commands(self):
+        return dict(get_temp=[])
+
+    def on_api_command(self, command, data):
+        if command == "get_temp":
+            return dict(temperature=self._temperature)
 
     ##~~ AssetPlugin mixin
 
     def get_assets(self):
-        # Define your plugin's asset files to automatically include in the
-        # core UI here.
-        return {
-            "js": ["js/ha_thermometer_graph.js"],
-            "css": ["css/ha_thermometer_graph.css"],
-            "less": ["less/ha_thermometer_graph.less"]
-        }
+        return dict(
+            js=["js/ha_thermometer_graph.js"],
+            css=[],
+            less=[]
+        )
 
-    ##~~ Softwareupdate hook
-
-    def get_update_information(self):
-        # Define the configuration for your plugin to use with the Software Update
-        # Plugin here. See https://docs.octoprint.org/en/master/bundledplugins/softwareupdate.html
-        # for details.
-        return {
-            "ha_thermometer_graph": {
-                "displayName": "Ha_thermometer_graph Plugin",
-                "displayVersion": self._plugin_version,
-
-                # version check: github repository
-                "type": "github_release",
-                "user": "jdrusso",
-                "repo": "OctoPrint-HA-Thermometer-Graph",
-                "current": self._plugin_version,
-
-                # update method: pip
-                "pip": "https://github.com/jdrusso/OctoPrint-HA-Thermometer-Graph/archive/{target_version}.zip",
-            }
-        }
-
-
-# If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
-# ("OctoPrint-PluginSkeleton"), you may define that here. Same goes for the other metadata derived from setup.py that
-# can be overwritten via __plugin_xyz__ control properties. See the documentation for that.
-__plugin_name__ = "Ha_thermometer_graph Plugin"
-
-
-# Set the Python version your plugin is compatible with below. Recommended is Python 3 only for all new plugins.
-# OctoPrint 1.4.0 - 1.7.x run under both Python 3 and the end-of-life Python 2.
-# OctoPrint 1.8.0 onwards only supports Python 3.
-__plugin_pythoncompat__ = ">=3,<4"  # Only Python 3
-
+__plugin_name__ = "HA Thermometer Graph"
+__plugin_pythoncompat__ = ">=3.7,<4"
 def __plugin_load__():
     global __plugin_implementation__
-    __plugin_implementation__ = Ha_thermometer_graphPlugin()
-
-    global __plugin_hooks__
-    __plugin_hooks__ = {
-        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
-    }
+    __plugin_implementation__ = HAThermometerGraphPlugin()
