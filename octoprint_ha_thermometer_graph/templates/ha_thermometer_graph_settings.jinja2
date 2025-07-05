@@ -24,4 +24,11 @@
             <input type="text" id="settings-sensor-label" name="sensor_label" data-bind="value: settings.plugins.ha_thermometer_graph.sensor_label" class="input-block-level">
         </div>
     </div>
+    <div class="control-group">
+        <label class="control-label" for="settings-ignore-ssl-verify">{{ _('Ignore SSL Verification') }}</label>
+        <div class="controls">
+            <input type="checkbox" id="settings-ignore-ssl-verify" name="ignore_ssl_verify" data-bind="checked: settings.plugins.ha_thermometer_graph.ignore_ssl_verify">
+            <span class="help-block">{{ _('Check to ignore SSL certificate errors when connecting to Home Assistant.') }}</span>
+        </div>
+    </div>
 </form>

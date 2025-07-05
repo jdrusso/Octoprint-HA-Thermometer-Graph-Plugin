@@ -31,7 +31,8 @@ class HAThermometerGraphPlugin(
             ha_url="http://homeassistant.local:8123",
             ha_token="",
             sensor_entity_id="sensor.your_thermometer",
-            sensor_label="HA_Sensor"
+            sensor_label="HA_Sensor",
+            ignore_ssl_verify=False
         )
 
     ##~~ StartupPlugin mixin
@@ -53,7 +54,8 @@ class HAThermometerGraphPlugin(
                     "Authorization": "Bearer {}".format(self._settings.get(["ha_token"])),
                     "Content-Type": "application/json",
                 }
-                response = requests.get(url, headers=headers, timeout=5)
+                verify_ssl = not self._settings.get_boolean(["ignore_ssl_verify"])
+                response = requests.get(url, headers=headers, timeout=5, verify=verify_ssl)
                 if response.ok:
                     data = response.json()
                     self._temperature = float(data["state"])
