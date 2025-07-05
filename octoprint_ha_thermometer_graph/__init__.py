@@ -26,7 +26,8 @@ class HAThermometerGraphPlugin(
         return dict(
             ha_url="http://homeassistant.local:8123",
             ha_token="",
-            sensor_entity_id="sensor.your_thermometer"
+            sensor_entity_id="sensor.your_thermometer",
+            sensor_label="HA_Sensor"
         )
 
     ##~~ StartupPlugin mixin
@@ -82,11 +83,10 @@ class HAThermometerGraphPlugin(
         }
 
     def ha_temperature_hook(self, comm_instance, parsed_temps, *args, **kwargs):
-        # Inject HA temperature as a virtual tool (e.g., "HA_Sensor")
+        # Inject HA temperature as a virtual tool using the configured label
         if self._temperature is not None:
-            # parsed_temps is a dict like {'B': (actual, target), 'T0': (actual, target), ...}
-            # We'll add our own
-            parsed_temps["HA_Sensor"] = (self._temperature, None)
+            sensor_label = self._settings.get(["sensor_label"]) or "HA_Sensor"
+            parsed_temps[sensor_label] = (self._temperature, None)
         return parsed_temps
 
 __plugin_name__ = "HA Thermometer Graph"
