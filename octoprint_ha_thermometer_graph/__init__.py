@@ -32,6 +32,7 @@ class HAThermometerGraphPlugin(
             ha_url="http://homeassistant.local:8123",
             ha_token="",
             sensor_entity_id="sensor.your_thermometer",
+            sensor_label="C",
             ignore_ssl_verify=False,
             poll_interval=5
         )
@@ -89,7 +90,7 @@ class HAThermometerGraphPlugin(
 
     def get_assets(self):
         return dict(
-            js=["js/ha_thermometer_graph.js"],
+            js=[],
             css=[],
             less=[]
         )
