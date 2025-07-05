@@ -17,7 +17,9 @@ dynamic = [
 requires-python = ">=3.7, <4"
 
 # any additional requirements (besides OctoPrint) should be listed here
-dependencies = []
+dependencies = [
+    "requests"
+]
 
 [tool.setuptools]
 include-package-data = true
@@ -36,5 +38,6 @@ Homepage = "https://github.com/jdrusso/OctoPrint-HA-Thermometer-Graph"
 
 [project.optional-dependencies]
 develop = [
-    "go-task-bin"
+    "go-task-bin",
+    "octoprint"
 ]
