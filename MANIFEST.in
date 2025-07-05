@@ -1,0 +1,4 @@
+include README.md
+recursive-include octoprint_ha_thermometer_graph/templates *
+recursive-include octoprint_ha_thermometer_graph/translations *
+recursive-include octoprint_ha_thermometer_graph/static *

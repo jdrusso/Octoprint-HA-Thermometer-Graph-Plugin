@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "OctoPrint-HA-Thermometer-Graph"
+version = "0.1.0"
+description = "TODO"
+authors = [
+    {name = "JD Russo", email = "you@example.com"}
+]
+readme = {file = "README.md", content-type = "markdown"}
+dynamic = [
+    "license"
+]
+
+requires-python = ">=3.7, <4"
+
+# any additional requirements (besides OctoPrint) should be listed here
+dependencies = []
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = [
+    "octoprint_ha_thermometer_graph",
+    "octoprint_ha_thermometer_graph.*"
+]
+
+[project.entry-points."octoprint.plugin"]
+ha_thermometer_graph = "octoprint_ha_thermometer_graph"
+
+[project.urls]
+Homepage = "https://github.com/jdrusso/OctoPrint-HA-Thermometer-Graph"
+
+[project.optional-dependencies]
+develop = [
+    "go-task-bin"
+]
