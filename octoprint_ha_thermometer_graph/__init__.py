@@ -33,7 +33,8 @@ class HAThermometerGraphPlugin(
             ha_token="",
             sensor_entity_id="sensor.your_thermometer",
             sensor_label="HA_Sensor",
-            ignore_ssl_verify=False
+            ignore_ssl_verify=False,
+            poll_interval=30
         )
 
     ##~~ StartupPlugin mixin

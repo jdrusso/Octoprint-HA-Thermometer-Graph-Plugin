@@ -36,4 +36,11 @@
             <span class="help-block">{{ _('Check to ignore SSL certificate errors when connecting to Home Assistant.') }}</span>
         </div>
     </div>
+    <div class="control-group">
+        <label class="control-label" for="settings-poll-interval">{{ _('Polling Interval (seconds)') }}</label>
+        <div class="controls">
+            <input type="number" min="5" step="1" id="settings-poll-interval" name="poll_interval" data-bind="value: settings.plugins.ha_thermometer_graph.poll_interval" class="input-small">
+            <span class="help-block">{{ _('How often to poll Home Assistant for temperature updates (minimum 5 seconds).') }}</span>
+        </div>
+    </div>
 </form>
