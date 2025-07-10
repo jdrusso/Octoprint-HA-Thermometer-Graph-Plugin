@@ -53,7 +53,7 @@ class HAThermometerGraphPlugin(
                 time.sleep(interval)
                 continue
             try:
-                self._logger.info("Making request")
+                self._logger.debug("Making request")
                 url = "{}/api/states/{}".format(
                     self._settings.get(["ha_url"]).rstrip("/"),
                     self._settings.get(["sensor_entity_id"])
